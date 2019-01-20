@@ -1,0 +1,242 @@
+<!DOCTYPE HTML>
+<html>
+  <head>
+    <meta charset='utf-8'>
+		<title>WebSat</title>
+		<meta property="og:title" content="WebSat">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <link rel=StyleSheet href="style.css" type="text/css" />
+  </head>
+  <body>
+    <div class="header">
+      <div class="header-content">
+        <h1>WebSat Messenger</h1>
+        <h2>Encrypted and web based global communications</h2>
+        <h3>Powered by Blockstream Sattelite, Lightning Network, and PGP</h3>
+      </div>
+    </div>
+    <hr />
+    <div id="pgp">
+      <div id="pgp-content">
+        <form id="pgpForm">
+          <h3>PGP Key to Encrypt With:</h3>
+          <textarea id="pgpKey"></textarea>
+          <h3>Message to Broadcast:</h3>
+          <textarea id="plaintext"></textarea>
+
+        </form>
+          <button id="submitPgp">Encrypt Message</button>
+          <a href="" id="link" download="encryptedMessage.txt">Save Message</a>
+      </div>
+    </div>
+    <hr />
+    <div id="input">
+      <div id="input-content">
+        <form id="form">
+          <h3>Blockstream Sattelite Upload</h3>
+          <input type="file" id="file" />
+          <button id="submit" type="submit">Begin Broadcast</button>
+        </form>
+      </div>
+
+    </div>
+
+    <div id="blockstreamResponse">
+      <div id="blockstreamResponse-content">
+        <div id="responseMessage"></div>
+        <p class="reciept-item"><b>Transmission ID:</b></p>
+        <div id="requestId"></div>
+        <p class="reciept-item"><b>Authorization Token:</b></p>
+        <div id="authToken"></div>
+        <p class="reciept-item"><b>Lightning Invoice:</b></p>
+        <div id=lightningInvoice></div>
+      </div>
+    </div>
+    <hr />
+    <div id="generate">
+      <div id="generate-content">
+        <div id="generate-header">
+          <h3>Don't have PGP keys? Try Using These.</h3>
+          <p id="generating">Generating keys...</p>
+        </div>
+
+
+        <div id="generate-content">
+          <div id="privateKey"></div>
+          <div id="publicKey"></div>
+        </div>
+      </div>
+    </div>
+
+
+  </body>
+  <script src="kbpgp-2.0.8-min.js"></script>
+  <script>
+
+//////grab values////
+window.onload = function() {
+  let responseMessage = document.getElementById("responseMessage");
+  let txt = document.getElementById('plaintext');
+  document.getElementById('link').style.display = "none";
+  document.getElementById('blockstreamResponse-content').style.display = "none";
+
+  kbpgp.KeyManager.generate_rsa({ userid : "" }, function(err, satoshi) {
+    if (!err) {
+       // sign alice's subkeys
+       satoshi.sign({}, function(err) {
+         document.getElementById('generating').style.display = "none";
+         console.log(satoshi);
+         // export demo; dump the private with a passphrase
+         satoshi.export_pgp_private ({
+           passphrase: 'booyeah!'
+         }, function(err, pgp_private) {
+           console.log("private key: ", pgp_private);
+           console.log(document.getElementById('privateKey'));
+           document.getElementById('privateKey').innerHTML = pgp_private;
+         });
+         satoshi.export_pgp_public({}, function(err, pgp_public) {
+           console.log("public key: ", pgp_public);
+           document.getElementById('publicKey').innerHTML = pgp_public;
+         });
+       });
+     } else {
+       console.log(err);
+     }
+});
+
+
+   ////////////pgp magic////////////////
+document.getElementById('submitPgp').onclick = function (code){
+
+let a = document.createElement("a");
+let grubKey = document.getElementById('pgpKey').value;
+let plaintext = document.getElementById('plaintext').value;
+
+
+  kbpgp.KeyManager.import_from_armored_pgp({
+    armored: grubKey
+  }, function(err, grubs) {
+    ///PGP key available
+    console.log(err);
+
+
+    if (!err) {
+      console.log("grubs is loaded");
+
+          let params = {
+          msg:        plaintext,
+          encrypt_for: grubs
+          };
+
+          kbpgp.box(params, function(err, result_string, result_buffer) {
+            console.log(err, result_string);
+            //save encrypted file here
+            document.getElementById('link').href = 'data:text/plain;charset=utf-8,'
+                + encodeURIComponent(result_string);
+                document.getElementById('link').style.display = "block";
+                document.getElementById('plaintext').value = result_string;
+          });
+
+    }
+  });
+
+}
+
+  ////////////Form and submission logic////////////////
+  console.log("online");
+  let form = document.getElementById('form');
+  let formButton = document.getElementById("submit");
+  const milliSatoshiPerByte = 50;
+  form.onsubmit = function(event) {
+      event.preventDefault();
+      formButton.innerHTML = "Uploading to Blockstream...";
+
+      let formData = new FormData();
+      let file = document.getElementById('file').files[0];
+      let bidRate = 300;
+
+      let bid = parseInt(bidRate * file.size);
+
+      // check if the file size falls into the API limits
+
+      if (file.size < 1000) {
+          // too small
+          responseMessage.innerHTML = "Failed - File must be larger than 1kb."
+          responseMessage.style.display = "block";
+          responseMessage.style.display = "none";
+          return;
+
+      } else if (file.size > 10000) {
+          // too large
+          responseMessage.innerHTML = "Failed - File must be smaller than 10kb."
+          responseMessage.style.display = "block";
+          responseMessage.style.display = "none";
+          return;
+      }
+
+      // check if the amount is high enough
+      if (bidRate < milliSatoshiPerByte) {
+          responseMessage.innerHTML = "Upload Failed: Rate must be greater than the minimum bid rate of " + (milliSatoshiPerByte) + " millisatoshis per byte."
+          responseMessage.style.display = "block";
+          responseMessage.style.display = "none";
+          formButton.innerHTML = "Submit";
+
+      } else {
+        console.log(formData);
+          formData.append("file", file);
+          formData.append("bid", bid);
+          setTimeout(function(){
+            console.log(formData);
+          }, 1500);
+          let endpoint = "https://satellite.blockstream.com/api/order";
+
+          axios({
+              method: 'post',
+              url: endpoint,
+              data: formData,
+              config: { headers: {'Access-Control-Allow-Origin': '*','Content-Type': 'multipart/form-data' }}
+          })
+          .then(function (response) {
+              //handle success
+              document.getElementById('input').innerHTML = "";
+              console.log(response);
+              responseMessage.innerHTML = "Upload Successful."
+              responseMessage.style.display = "block";
+              formButton.innerHTML = "Submit";
+
+              document.getElementById('blockstreamResponse-content').style.display = "block";
+              let requestId = document.getElementById('requestId');
+              let authToken = document.getElementById('authToken');
+              let lightningInvoice = document.getElementById('lightningInvoice');
+              requestId.innerHTML = response.data.uuid;
+              authToken.innerHTML = response.data.auth_token;
+              lightningInvoice.innerHTML = response.data.lightning_invoice.payreq;
+
+          })
+          .catch(function (error) {
+            console.log("error will robinson");
+              //handle error
+              console.log(error.message);
+
+              if (error.response.status === 413) {
+                  responseMessage.innerHTML = "File too large. Limit of 10kb.";
+              } else {
+                  if (error.response) {
+                      responseMessage.innerHTML = error.response;
+                  } else {
+                      responseMessage.innerHTML = "Upload Failed."
+                  }
+              }
+
+              responseMessage.style.display = "none";
+              responseMessage.style.display = "block";
+              formButton.innerHTML = "Submit";
+
+          });
+      }
+    };
+
+     };
+  </script>
+</html>
