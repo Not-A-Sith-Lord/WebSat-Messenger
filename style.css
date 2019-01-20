@@ -1,0 +1,85 @@
+body {
+  color:white;
+  background-color:#262626;
+}
+
+.header {
+  color: #00c3ff;
+  text-align: center;
+}
+
+h3 {
+  color: #00c3ff;
+}
+
+a {
+  color: #00c3ff;
+}
+
+.header-content {
+  margin: 0 auto;
+  width: 600px;
+}
+
+.reciept-item {
+  color: #00c3ff;
+}
+#pgp {
+  text-align: center;
+}
+
+#pgp-content {
+  margin: 0 auto;
+  width: 600px;
+}
+
+#input {
+  text-align: center;
+}
+
+#input-content {
+  margin: 0 auto;
+  width: 600px;
+}
+
+textarea {
+  background-color: #f2f2f2;
+  width: 400px;
+  height: 400px;
+}
+
+#blockstreamResponse {
+  text-align: center;
+}
+
+#blockstreamResponse-content {
+  margin: 0 auto;
+}
+
+#generate {
+
+}
+
+#generate-header {
+  margin: 0 auto;
+  text-align: center;
+}
+
+
+#lightningInvoice {
+  word-wrap: break-word;
+  width: 30rem;
+  margin: 0 auto;
+}
+
+#privateKey {
+  font-size: x-small;
+  width: 50%;
+  float: left;
+}
+
+#publicKey {
+  font-size: x-small;
+  width: 50%;
+  float: right;
+}
