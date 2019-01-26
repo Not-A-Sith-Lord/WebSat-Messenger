@@ -17,17 +17,45 @@
       </div>
     </div>
     <hr />
+    <div id="instructions">
+      <ol>
+        <li>
+          Compose any kind of message in the text area below, or paste one in.
+        </li>
+        <li>
+          Paste in a PGP Public Key in the adjacent text area to encrypt the message with. If you don't have one, you can try out the keys generated at the bottom of this page.
+        </li>
+        <li>
+          Encrypt your message, and save the resulting file. The Sattelite API requires the submission be in file format.
+        </li>
+        <li>
+          Upload your new encrypted file in the Satellite Upload section, and enter it into the broadcast queue.
+        </li>
+        <li>
+          Pay the resulting Lightning Network invoice (testnet coins!) to broadcast your encrypted message. A recommended wallet for easy testing is <a href="https://htlc.me/">htlc.me</a>. You can use the other provided information to check on the status of your message under <a href="https://blockstream.com/satellite-queue/">Manage Transmissions</a>
+        </li>
+        <li>
+          All encryption functions take place completely client side in the browser, and can be done offline. Regardless, treat this as an educational tool only!
+        </li>
+      </ol>
+    </div>
     <div id="pgp">
       <div id="pgp-content">
         <form id="pgpForm">
-          <h3>PGP Key to Encrypt With:</h3>
-          <textarea id="pgpKey"></textarea>
-          <h3>Message to Broadcast:</h3>
-          <textarea id="plaintext"></textarea>
-
+          <div id="message">
+            <h3>Message to Broadcast:</h3>
+            <textarea id="plaintext"></textarea>
+          </div>
+          <div id="inputedKey">
+            <h3>PGP Key to Encrypt With:</h3>
+            <textarea id="pgpKey"></textarea>
+          </div>
         </form>
+        <div id="messageOptions">
           <button id="submitPgp">Encrypt Message</button>
           <a href="" id="link" download="encryptedMessage.txt">Save Message</a>
+        </div>
+
       </div>
     </div>
     <hr />
@@ -35,8 +63,9 @@
       <div id="input-content">
         <form id="form">
           <h3>Blockstream Satellite Upload</h3>
-          <input type="file" id="file" />
-          <button id="submit" type="submit">Begin Broadcast</button>
+          <label for="file">Choose File for Upload:</label>
+          <input type="file" id="file" name="" />
+          <button id="submit" type="submit">Queue File For Space</button>
         </form>
       </div>
 
@@ -87,17 +116,23 @@ window.onload = function() {
        satoshi.sign({}, function(err) {
          document.getElementById('generating').style.display = "none";
          console.log(satoshi);
-         // export demo; dump the private with a passphrase
+         // export demo; dump the private with no passphrase
          satoshi.export_pgp_private ({
-           passphrase: 'booyeah!'
+           passphrase: ''
          }, function(err, pgp_private) {
            console.log("private key: ", pgp_private);
-           console.log(document.getElementById('privateKey'));
-           document.getElementById('privateKey').innerHTML = pgp_private;
+
+           let privOutput = document.createElement('textarea');
+           privOutput.appendChild(document.createTextNode(pgp_private));
+           document.getElementById('privateKey').appendChild(privOutput);
+
          });
          satoshi.export_pgp_public({}, function(err, pgp_public) {
            console.log("public key: ", pgp_public);
-           document.getElementById('publicKey').innerHTML = pgp_public;
+
+           let pubOutput = document.createElement('textarea');
+           pubOutput.appendChild(document.createTextNode(pgp_public));
+           document.getElementById('publicKey').appendChild(pubOutput);
          });
        });
      } else {
@@ -110,23 +145,23 @@ window.onload = function() {
 document.getElementById('submitPgp').onclick = function (code){
 
 let a = document.createElement("a");
-let grubKey = document.getElementById('pgpKey').value;
+let inputedPubKey = document.getElementById('pgpKey').value;
 let plaintext = document.getElementById('plaintext').value;
 
 
   kbpgp.KeyManager.import_from_armored_pgp({
-    armored: grubKey
-  }, function(err, grubs) {
+    armored: inputedPubKey
+  }, function(err, pubKey) {
     ///PGP key available
     console.log(err);
 
 
     if (!err) {
-      console.log("grubs is loaded");
+      console.log("pubKey is loaded");
 
           let params = {
           msg:        plaintext,
-          encrypt_for: grubs
+          encrypt_for: pubKey
           };
 
           kbpgp.box(params, function(err, result_string, result_buffer) {
@@ -147,6 +182,7 @@ let plaintext = document.getElementById('plaintext').value;
   console.log("online");
   let form = document.getElementById('form');
   let formButton = document.getElementById("submit");
+  //Hardcoded for now, should be user inputed and updateable in later version
   const milliSatoshiPerByte = 50;
   form.onsubmit = function(event) {
       event.preventDefault();
