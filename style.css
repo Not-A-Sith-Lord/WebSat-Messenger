@@ -24,16 +24,42 @@ a {
 .reciept-item {
   color: #00c3ff;
 }
+
+#instructions {
+  width: 90%;
+  margin: 0 auto;
+}
+
+#message {
+  display: inline-block;
+  padding: 0 30px 0 30px
+}
+
+#inputedKey {
+  display: inline-block;
+  padding: 0 30px 0 30px
+}
+
 #pgp {
   text-align: center;
 }
 
 #pgp-content {
   margin: 0 auto;
-  width: 600px;
+  width: 100%;
+}
+
+#submitPgp {
+  padding: 3px;
+}
+
+#messageOptions {
+  clear: both;
+  padding: 30px;
 }
 
 #input {
+  clear: both;
   text-align: center;
 }
 
@@ -48,6 +74,17 @@ textarea {
   height: 400px;
 }
 
+#form * {
+  padding: 7px;
+  margin: 0 auto;
+}
+
+#submit {
+  display: block;
+  margin-top: 14px;
+  padding: 3px;
+}
+
 #blockstreamResponse {
   text-align: center;
 }
@@ -58,6 +95,11 @@ textarea {
 
 #generate {
 
+}
+#generate textarea {
+  background-color: #f2f2f2;
+  width: 70%;
+  height: 600px;
 }
 
 #generate-header {
@@ -76,10 +118,12 @@ textarea {
   font-size: x-small;
   width: 50%;
   float: left;
+  text-align: center;
 }
 
 #publicKey {
   font-size: x-small;
   width: 50%;
   float: right;
+  text-align: center;
 }
