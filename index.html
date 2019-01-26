@@ -67,13 +67,13 @@
           <input type="file" id="file" name="" />
           <button id="submit" type="submit">Queue File For Space</button>
         </form>
+        <div id="responseMessage"></div>
       </div>
 
     </div>
 
     <div id="blockstreamResponse">
       <div id="blockstreamResponse-content">
-        <div id="responseMessage"></div>
         <p class="reciept-item"><b>Transmission ID:</b></p>
         <div id="requestId"></div>
         <p class="reciept-item"><b>Authorization Token:</b></p>
@@ -87,7 +87,7 @@
       <div id="generate-content">
         <div id="generate-header">
           <h3>Don't have PGP keys? Try Using These.</h3>
-          <p id="generating">Generating keys... (this could take a second)</p>
+          <p id="generating">Generating keys...</p>
         </div>
 
 
@@ -105,7 +105,7 @@
 
 //////grab values////
 window.onload = function() {
-  let responseMessage = document.getElementById("responseMessage");
+
   let txt = document.getElementById('plaintext');
   document.getElementById('link').style.display = "none";
   document.getElementById('blockstreamResponse-content').style.display = "none";
@@ -179,7 +179,7 @@ let plaintext = document.getElementById('plaintext').value;
 }
 
   ////////////Form and submission logic////////////////
-  console.log("online");
+  let responseMessage = document.getElementById("responseMessage");
   let form = document.getElementById('form');
   let formButton = document.getElementById("submit");
   //Hardcoded for now, should be user inputed and updateable in later version
@@ -197,17 +197,17 @@ let plaintext = document.getElementById('plaintext').value;
       // check if the file size falls into the API limits
 
       if (file.size < 1000) {
+          console.log("File too big");
           // too small
           responseMessage.innerHTML = "Failed - File must be larger than 1kb."
           responseMessage.style.display = "block";
-          responseMessage.style.display = "none";
           return;
 
       } else if (file.size > 10000) {
+            console.log("File too small");
           // too large
           responseMessage.innerHTML = "Failed - File must be smaller than 10kb."
           responseMessage.style.display = "block";
-          responseMessage.style.display = "none";
           return;
       }
 
